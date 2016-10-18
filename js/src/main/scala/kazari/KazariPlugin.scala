@@ -1,10 +1,13 @@
 package kazari
 
+import cats.Id
 import kazari.domhelper.DOMHelper
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import org.scalajs.dom._
+
 import scala.scalajs.js.JSApp
 import scala.scalajs.js.annotation.JSExport
 import org.denigma.codemirror.{CodeMirror, EditorConfiguration}
@@ -18,11 +21,19 @@ import org.scalajs.dom
 import org.scalajs.dom.ext.PimpedNodeList
 import org.scalajs.dom.raw.HTMLTextAreaElement
 import org.querki.jquery._
+import github4s.Github
+import github4s.free.domain.GistFile
+import github4s.app.GitHub4s
+import github4s.free.interpreters.{ Interpreters ⇒ GithubInterpreters, Capture ⇒ GithubCapture
+}
+import github4s.Github
+import Github._
+import github4s.GithubResponses.{ GHResponse, GHResult }
 
 @JSExport
 object KazariPlugin extends JSApp with DOMHelper {
   val codeExcludeClass = "code-exclude"
-  lazy val codeSnippets = document.querySelectorAll(s"code.language-scala:not(.$codeExcludeClass)")
+  lazy val codeSnippets = document.querySelectorAll(s"div.language-scala:not(.$codeExcludeClass)")
   val dependenciesMetaName = "evaluator-dependencies"
   val resolversMetaName = "evaluator-resolvers"
 
@@ -87,6 +98,22 @@ object KazariPlugin extends JSApp with DOMHelper {
       evalResponse onComplete  {
         case Success(r) ⇒ onSuccess(r)
         case Failure(f) ⇒ onFailure(f)
+      }
+    })
+  }
+
+  def createButtonSaveGist(targetNode: Node,
+      snippetToSave: () => String
+  ) = {
+    appendButton(targetNode, "Save to Gist", onClickFunction = (e: dom.MouseEvent) => {
+      // TODO: test, create login and use real access token
+      val files = Map("test.scala" -> GistFile("val a = 42\nprintln(a)"))
+      val request = Github().gists.newGist("test", true, files, Some("15b430ef8ac6ba6a56df36167a73ad26803a26b4"))
+      request.exec[Future].onComplete {
+        case Success(r) => r.fold(
+          e => println("failure creating gist -> " + e),
+          r => println("Success creating gist -> ") + r.result.toString)
+        case Failure(e) => println("failure creating gist -> " + e)
       }
     })
   }

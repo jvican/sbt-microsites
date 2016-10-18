@@ -54,7 +54,9 @@ lazy val jsSettings = Seq(
     "com.github.japgolly.scalacss" %%% "core" % "0.5.0",
     "com.github.japgolly.scalacss" %%% "ext-scalatags" % "0.5.0",
     "org.querki" %%% "jquery-facade" % "1.0-RC6",
-    "org.denigma" %%% "codemirror-facade" % "5.11-0.7"
+    "org.denigma" %%% "codemirror-facade" % "5.11-0.7",
+    "com.fortysevendeg" %% "github4s" % "0.8.1-SNAPSHOT"
+
   ),
   resolvers ++= Seq(Resolver.url(
     "bintray-sbt-plugin-releases",
